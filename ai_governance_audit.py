@@ -1,12 +1,7 @@
 import streamlit as st
 import plotly.graph_objects as go
-import pandas as pd
 from datetime import datetime
-import math
 
-# ============================================================
-# PAGE CONFIG
-# ============================================================
 st.set_page_config(
     page_title="AI Governance Audit Framework",
     page_icon="⚖️",
@@ -14,287 +9,315 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ============================================================
-# STYLING
-# ============================================================
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700;900&family=DM+Mono:wght@300;400;500&family=Libre+Franklin:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Libre+Franklin:wght@300;400;500;600&display=swap');
 
 html, body, [class*="css"] {
     font-family: 'Libre Franklin', sans-serif;
-    background-color: #f7f5f0;
-    color: #1a1a1a;
+    background-color: #0c0f1a !important;
+    color: #e8e4dc;
 }
-
-.main {
-    background-color: #f7f5f0;
+.main, .block-container {
+    background-color: #0c0f1a !important;
 }
-
+[data-testid="stAppViewContainer"] { background-color: #0c0f1a !important; }
+[data-testid="stHeader"] { background-color: #0c0f1a !important; }
 h1, h2, h3 {
-    font-family: 'Fraunces', serif !important;
-    letter-spacing: -0.5px;
-    color: #111;
+    font-family: 'Syne', sans-serif !important;
+    color: #f0ece4 !important;
+    letter-spacing: -0.3px;
 }
 
-/* Top banner */
-.audit-header {
-    background: #111;
-    color: #f7f5f0;
-    padding: 36px 40px 28px;
-    border-radius: 16px;
-    margin-bottom: 28px;
+[data-testid="stSidebar"] {
+    background: #080b14 !important;
+    border-right: 1px solid rgba(255,255,255,0.06);
+}
+[data-testid="stSidebar"] * { color: #c8c4bc !important; }
+[data-testid="stSidebar"] input { background: #111624 !important; border-color: rgba(255,255,255,0.1) !important; color: #e8e4dc !important; }
+
+.slabel {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: #5a7fa8;
+    margin-bottom: 4px;
+    margin-top: 24px;
+    display: block;
+}
+
+.hero {
+    background: linear-gradient(135deg, #111828 0%, #0d1420 100%);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+    padding: 48px 44px 40px;
+    margin-bottom: 32px;
     position: relative;
     overflow: hidden;
 }
-.audit-header::before {
+.hero::before {
     content: '';
     position: absolute;
-    top: -60px; right: -60px;
-    width: 200px; height: 200px;
-    border: 1px solid rgba(247,245,240,0.08);
+    width: 320px; height: 320px;
     border-radius: 50%;
+    border: 1px solid rgba(90,127,168,0.08);
+    top: -100px; right: -80px;
 }
-.audit-header::after {
-    content: '';
-    position: absolute;
-    top: -20px; right: -20px;
-    width: 120px; height: 120px;
-    border: 1px solid rgba(247,245,240,0.05);
-    border-radius: 50%;
-}
-.audit-header h1 {
-    font-family: 'Fraunces', serif !important;
-    font-size: 2.1rem;
-    font-weight: 900;
-    color: #f7f5f0 !important;
-    margin: 0 0 6px 0;
-    letter-spacing: -1px;
-}
-.audit-header p {
-    color: rgba(247,245,240,0.55);
-    font-size: 0.88rem;
-    margin: 0;
-    letter-spacing: 0.3px;
-    font-family: 'Libre Franklin', sans-serif;
-}
-.audit-tag {
+.hero-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #5a7fa8;
+    border: 1px solid rgba(90,127,168,0.25);
+    background: rgba(90,127,168,0.08);
+    padding: 4px 12px;
+    border-radius: 4px;
     display: inline-block;
-    background: rgba(247,245,240,0.08);
-    border: 1px solid rgba(247,245,240,0.15);
-    color: rgba(247,245,240,0.7);
+    margin-bottom: 18px;
+}
+.hero h1 {
+    font-family: 'Syne', sans-serif !important;
+    font-size: 2.4rem !important;
+    font-weight: 800 !important;
+    color: #f0ece4 !important;
+    margin: 0 0 10px 0 !important;
+    letter-spacing: -1.2px;
+    line-height: 1.1;
+}
+.hero p {
+    color: rgba(232,228,220,0.5);
+    font-size: 0.92rem;
+    margin: 0;
+    line-height: 1.7;
+    max-width: 640px;
+}
+
+.progress-bar-outer {
+    background: rgba(255,255,255,0.05);
+    border-radius: 99px;
+    height: 4px;
+    margin: 20px 0 8px;
+    overflow: hidden;
+}
+.progress-bar-inner {
+    height: 4px;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #5a7fa8, #7eb8d4);
+}
+.step-counter {
     font-family: 'DM Mono', monospace;
     font-size: 0.68rem;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    padding: 4px 10px;
-    border-radius: 4px;
-    margin-bottom: 14px;
-}
-
-/* Section label */
-.section-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: #888;
-    margin-bottom: 6px;
-    margin-top: 32px;
-}
-
-/* Domain card */
-.domain-card {
-    background: white;
-    border: 1px solid #e8e4dc;
-    border-radius: 12px;
-    padding: 20px 22px;
-    margin-bottom: 12px;
-}
-.domain-title {
-    font-family: 'Fraunces', serif;
-    font-size: 1.05rem;
-    font-weight: 700;
-    margin-bottom: 4px;
-    color: #111;
-}
-.domain-desc {
-    font-size: 0.8rem;
-    color: #777;
-    margin-bottom: 0;
-    line-height: 1.5;
-}
-
-/* Risk pill */
-.pill {
-    display: inline-block;
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
     letter-spacing: 1px;
-    text-transform: uppercase;
-    padding: 3px 10px;
-    border-radius: 20px;
-    margin-left: 8px;
+    color: rgba(232,228,220,0.35);
+    margin-bottom: 24px;
 }
-.pill-critical { background: #fde8e8; color: #c0392b; border: 1px solid #f5c6c6; }
-.pill-high     { background: #fef3e2; color: #d35400; border: 1px solid #fad7a0; }
-.pill-medium   { background: #fefde7; color: #b7950b; border: 1px solid #f7dc6f; }
-.pill-low      { background: #e8f8f0; color: #1e8449; border: 1px solid #a9dfbf; }
 
-/* Score card */
-.score-card {
-    background: #111;
-    color: #f7f5f0;
+.step-card {
+    background: #111828;
+    border: 1px solid rgba(255,255,255,0.06);
     border-radius: 16px;
-    padding: 28px 24px;
-    text-align: center;
+    padding: 28px 28px 24px;
+    margin-bottom: 20px;
 }
-.score-number {
-    font-family: 'Fraunces', serif;
-    font-size: 4rem;
-    font-weight: 900;
-    line-height: 1;
-    margin: 8px 0;
+.step-card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #f0ece4;
+    margin-bottom: 6px;
 }
-.score-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: rgba(247,245,240,0.45);
+.step-card-desc {
+    font-size: 0.83rem;
+    color: rgba(232,228,220,0.45);
+    line-height: 1.6;
+    margin-bottom: 16px;
 }
 
-/* Finding card */
-.finding {
-    border-left: 3px solid #ccc;
-    padding: 12px 16px;
-    margin-bottom: 8px;
-    background: white;
-    border-radius: 0 8px 8px 0;
-    font-size: 0.88rem;
-    line-height: 1.6;
-    color: #333;
+.q-item {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 6px;
 }
-.finding.critical { border-left-color: #c0392b; }
-.finding.high     { border-left-color: #d35400; }
-.finding.medium   { border-left-color: #b7950b; }
-.finding.low      { border-left-color: #1e8449; }
-.finding-label {
+.q-severity {
     font-family: 'DM Mono', monospace;
-    font-size: 0.62rem;
+    font-size: 0.6rem;
     letter-spacing: 1.5px;
     text-transform: uppercase;
-    margin-bottom: 4px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    display: inline-block;
+    margin-bottom: 6px;
 }
-.finding-label.critical { color: #c0392b; }
-.finding-label.high     { color: #d35400; }
-.finding-label.medium   { color: #b7950b; }
-.finding-label.low      { color: #1e8449; }
+.sev-critical { background: rgba(192,57,43,0.15); color: #e74c3c; border: 1px solid rgba(192,57,43,0.25); }
+.sev-high     { background: rgba(211,84,0,0.15);  color: #e67e22; border: 1px solid rgba(211,84,0,0.25); }
+.sev-medium   { background: rgba(183,149,11,0.15); color: #f1c40f; border: 1px solid rgba(183,149,11,0.25); }
+.sev-low      { background: rgba(30,132,73,0.15);  color: #2ecc71; border: 1px solid rgba(30,132,73,0.25); }
+.q-text { font-size: 0.88rem; color: rgba(232,228,220,0.8); line-height: 1.5; }
 
-/* Recommendation card */
-.rec-card {
-    background: white;
-    border: 1px solid #e8e4dc;
-    border-radius: 10px;
-    padding: 14px 18px;
-    margin-bottom: 8px;
-    font-size: 0.87rem;
-    color: #333;
-    line-height: 1.6;
-}
-.rec-number {
-    font-family: 'Fraunces', serif;
-    font-size: 1.4rem;
-    font-weight: 900;
-    color: #ddd;
-    float: left;
-    margin-right: 12px;
-    line-height: 1;
-}
-
-/* Sidebar */
-[data-testid="stSidebar"] {
-    background: #fff !important;
-    border-right: 1px solid #e8e4dc;
-}
-
-/* Inputs */
-.stSelectbox label, .stTextInput label, .stRadio label {
-    font-family: 'DM Mono', monospace !important;
-    font-size: 0.7rem !important;
-    letter-spacing: 1px !important;
-    text-transform: uppercase !important;
-    color: #888 !important;
-}
-
-/* Slider */
-.stSlider label {
-    font-family: 'DM Mono', monospace !important;
-    font-size: 0.68rem !important;
-    letter-spacing: 1px !important;
-    text-transform: uppercase !important;
-    color: #666 !important;
-}
-
-hr { border-color: #e8e4dc !important; }
-
-/* Expander */
-.streamlit-expanderHeader {
-    font-family: 'Libre Franklin', sans-serif !important;
-    font-size: 0.9rem !important;
-    font-weight: 600 !important;
-    color: #111 !important;
-}
-
-/* Download button */
-.stDownloadButton button {
-    background: #111 !important;
-    color: #f7f5f0 !important;
-    border: none !important;
+.stButton > button {
+    background: #111828 !important;
+    color: #e8e4dc !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
     border-radius: 8px !important;
     font-family: 'DM Mono', monospace !important;
     font-size: 0.75rem !important;
     letter-spacing: 0.5px !important;
+    padding: 10px 22px !important;
 }
+.stButton > button:hover {
+    background: #1a2438 !important;
+    border-color: rgba(90,127,168,0.4) !important;
+    color: #f0ece4 !important;
+}
+
+.stRadio > div { gap: 6px !important; }
+.stRadio label {
+    background: rgba(255,255,255,0.02) !important;
+    border: 1px solid rgba(255,255,255,0.06) !important;
+    border-radius: 8px !important;
+    padding: 8px 14px !important;
+    font-size: 0.83rem !important;
+    color: rgba(232,228,220,0.7) !important;
+    cursor: pointer !important;
+}
+.stRadio label:hover {
+    background: rgba(90,127,168,0.1) !important;
+    border-color: rgba(90,127,168,0.3) !important;
+    color: #e8e4dc !important;
+}
+
+.score-hero {
+    background: linear-gradient(135deg, #111828 0%, #0d1c2e 100%);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 20px;
+    padding: 36px 32px;
+    text-align: center;
+}
+.score-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 5rem;
+    font-weight: 800;
+    line-height: 1;
+    margin: 10px 0 6px;
+}
+.score-lbl {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(232,228,220,0.35);
+    margin-bottom: 6px;
+}
+
+.finding {
+    border-left: 3px solid;
+    padding: 14px 18px;
+    margin-bottom: 8px;
+    background: #111828;
+    border-radius: 0 10px 10px 0;
+    font-size: 0.87rem;
+    line-height: 1.6;
+    color: rgba(232,228,220,0.8);
+}
+.finding-lbl {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.rec {
+    background: #111828;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 8px;
+    font-size: 0.87rem;
+    color: rgba(232,228,220,0.78);
+    line-height: 1.65;
+}
+.rec-n {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: rgba(255,255,255,0.08);
+    float: left;
+    margin-right: 14px;
+    line-height: 1;
+}
+
+.fw-tag {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin: 2px 3px 2px 0;
+    background: rgba(90,127,168,0.1);
+    color: #5a9fd4;
+    border: 1px solid rgba(90,127,168,0.2);
+}
+
+.stTextInput input {
+    background: #111828 !important;
+    border-color: rgba(255,255,255,0.08) !important;
+    color: #e8e4dc !important;
+    border-radius: 8px !important;
+}
+.stDownloadButton button {
+    background: #1e3a5f !important;
+    color: #7eb8d4 !important;
+    border: 1px solid rgba(90,127,168,0.35) !important;
+    border-radius: 8px !important;
+    font-family: 'DM Mono', monospace !important;
+    font-size: 0.75rem !important;
+}
+hr { border-color: rgba(255,255,255,0.06) !important; }
 </style>
 """, unsafe_allow_html=True)
 
 
 # ============================================================
-# FRAMEWORK DEFINITION
-# Five domains drawn from EU AI Act, NIST AI RMF, and ISO 42001
+# FRAMEWORK DATA
 # ============================================================
 DOMAINS = {
     "Transparency & Explainability": {
-        "icon": "◎",
-        "description": "Can the AI system's decisions be explained to affected users and auditors? Are model inputs, outputs, and logic disclosed appropriately?",
-        "weight": 0.20,
+        "icon": "◎", "weight": 0.20,
+        "description": "Can the system's decisions be explained to affected users and auditors? Are model inputs, outputs, and logic disclosed appropriately?",
+        "frameworks": ["EU AI Act Art. 13", "NIST AI RMF – MAP", "ISO 42001 §8.4"],
         "questions": [
             ("Is documentation available explaining how the AI system makes decisions?", "high"),
             ("Can the system provide explanations for individual decisions to affected users?", "high"),
-            ("Are the training data sources, data types, and collection methods disclosed?", "medium"),
-            ("Is there a published model card or system card describing capabilities and limitations?", "medium"),
-            ("Are performance benchmarks and accuracy metrics publicly available?", "low"),
+            ("Are training data sources, types, and collection methods disclosed?", "medium"),
+            ("Is there a published model card describing capabilities and limitations?", "medium"),
+            ("Are performance benchmarks and accuracy metrics available internally or publicly?", "low"),
         ]
     },
     "Fairness & Non-Discrimination": {
-        "icon": "◑",
-        "description": "Does the AI system treat individuals and groups equitably? Has it been tested for bias across protected characteristics?",
-        "weight": 0.22,
+        "icon": "◑", "weight": 0.22,
+        "description": "Does the system treat individuals and groups equitably? Has it been tested for bias across protected characteristics?",
+        "frameworks": ["EU AI Act Art. 10", "NIST AI RMF – MEASURE", "OECD AI Principles"],
         "questions": [
             ("Has the system been tested for differential performance across demographic groups?", "critical"),
             ("Are there mechanisms to detect and correct discriminatory outputs?", "high"),
             ("Was training data audited for historical bias before use?", "high"),
-            ("Does the system comply with anti-discrimination laws in its deployment jurisdiction?", "critical"),
+            ("Does the system comply with anti-discrimination laws in its jurisdiction?", "critical"),
             ("Is there a formal fairness metric used to evaluate model outputs?", "medium"),
         ]
     },
     "Accountability & Oversight": {
-        "icon": "◻",
+        "icon": "◻", "weight": 0.22,
         "description": "Who is responsible when the AI system causes harm? Are there human review processes, escalation paths, and audit trails?",
-        "weight": 0.22,
+        "frameworks": ["OSFI E-23 §4", "NIST AI RMF – GOVERN", "ISO 42001 §5.3", "EU AI Act Art. 17"],
         "questions": [
-            ("Is there a named responsible party (person or team) accountable for the system's outcomes?", "critical"),
+            ("Is there a named responsible party accountable for the system's outcomes?", "critical"),
             ("Are audit logs maintained of system decisions and interactions?", "high"),
             ("Is there a human-in-the-loop process for high-stakes decisions?", "high"),
             ("Is there a formal incident response process for AI-related harms?", "medium"),
@@ -302,9 +325,9 @@ DOMAINS = {
         ]
     },
     "Security & Robustness": {
-        "icon": "◈",
-        "description": "Is the AI system resilient to adversarial inputs, data poisoning, and misuse? Are security vulnerabilities regularly assessed?",
-        "weight": 0.18,
+        "icon": "◈", "weight": 0.18,
+        "description": "Is the system resilient to adversarial inputs, data poisoning, and misuse? Are vulnerabilities regularly assessed?",
+        "frameworks": ["NIST AI RMF – MANAGE", "ISO 42001 §8.5", "EU AI Act Art. 15"],
         "questions": [
             ("Has the system been tested against adversarial inputs and prompt injection?", "high"),
             ("Is there protection against data poisoning during model training?", "high"),
@@ -314,11 +337,11 @@ DOMAINS = {
         ]
     },
     "Privacy & Data Governance": {
-        "icon": "◍",
+        "icon": "◍", "weight": 0.18,
         "description": "Does the system comply with data protection laws? Is personal data handled, stored, and retained appropriately?",
-        "weight": 0.18,
+        "frameworks": ["GDPR / PIPEDA / CCPA", "ISO 42001 §8.3", "OECD AI Principles", "OSFI E-23 §6"],
         "questions": [
-            ("Does the system comply with applicable privacy laws (e.g. GDPR, PIPEDA, CCPA)?", "critical"),
+            ("Does the system comply with applicable privacy laws (GDPR, PIPEDA, CCPA)?", "critical"),
             ("Is personal data minimized — only collected and retained as needed?", "high"),
             ("Are data subjects informed when AI is used to make decisions about them?", "high"),
             ("Is there a data retention and deletion policy in place?", "medium"),
@@ -327,465 +350,387 @@ DOMAINS = {
     }
 }
 
-RISK_LEVELS = {
-    "Yes — fully in place": 1.0,
-    "Partially — in progress": 0.5,
-    "No — not addressed": 0.0,
-    "Not applicable": None
-}
-
-RISK_COLOR = {
-    "critical": "#c0392b",
-    "high": "#d35400",
-    "medium": "#b7950b",
-    "low": "#1e8449"
-}
+RESPONSE_OPTS = ["Yes — fully in place", "Partially — in progress", "No — not addressed", "Not applicable"]
+RISK_LEVELS   = {"Yes — fully in place": 1.0, "Partially — in progress": 0.5,
+                 "No — not addressed": 0.0, "Not applicable": None}
+STEPS = ["Welcome"] + list(DOMAINS.keys()) + ["Results"]
 
 
 # ============================================================
-# HELPER FUNCTIONS
+# SESSION STATE
 # ============================================================
-def compute_domain_score(responses: dict, questions: list) -> float:
-    scored = [RISK_LEVELS[r] for r in responses.values() if RISK_LEVELS[r] is not None]
+for key, val in [("step", 0), ("responses", {}), ("meta", {})]:
+    if key not in st.session_state:
+        st.session_state[key] = val
+
+
+# ============================================================
+# HELPERS
+# ============================================================
+def domain_score(domain):
+    resp   = st.session_state.responses.get(domain, {})
+    scored = [RISK_LEVELS[v] for v in resp.values() if RISK_LEVELS.get(v) is not None]
     return (sum(scored) / len(scored) * 100) if scored else 0
 
+def overall_score():
+    scores = {d: domain_score(d) for d in DOMAINS}
+    tw = sum(DOMAINS[d]["weight"] for d in scores)
+    return sum(scores[d] * DOMAINS[d]["weight"] for d in scores) / tw if tw else 0
 
-def compute_overall_score(domain_scores: dict) -> float:
-    total_weight = sum(DOMAINS[d]["weight"] for d in domain_scores)
-    weighted = sum(domain_scores[d] * DOMAINS[d]["weight"] for d in domain_scores)
-    return weighted / total_weight if total_weight else 0
+def rating(score):
+    if score >= 80: return "Strong",     "#2ecc71"
+    if score >= 60: return "Adequate",   "#f1c40f"
+    if score >= 40: return "Needs Work", "#e67e22"
+    return           "High Risk",        "#e74c3c"
 
+def sev_color(sev):
+    return {"critical": "#e74c3c", "high": "#e67e22", "medium": "#f1c40f", "low": "#2ecc71"}.get(sev, "#888")
 
-def score_to_rating(score: float) -> tuple:
-    if score >= 80:
-        return "Strong", "low", "#1e8449"
-    elif score >= 60:
-        return "Adequate", "medium", "#b7950b"
-    elif score >= 40:
-        return "Needs Improvement", "high", "#d35400"
-    else:
-        return "High Risk", "critical", "#c0392b"
-
-
-def generate_findings(all_responses: dict, system_name: str) -> list:
-    findings = []
-    for domain, domain_data in DOMAINS.items():
-        responses = all_responses.get(domain, {})
-        for i, (question, severity) in enumerate(domain_data["questions"]):
-            key = f"{domain}_{i}"
-            response = responses.get(key, "Not applicable")
-            if response == "No — not addressed":
-                findings.append({
-                    "domain": domain,
-                    "question": question,
-                    "severity": severity,
-                    "status": "Gap identified"
-                })
-            elif response == "Partially — in progress":
-                # Downgrade severity for partial
-                downgraded = {"critical": "high", "high": "medium", "medium": "low", "low": "low"}
-                findings.append({
-                    "domain": domain,
-                    "question": question,
-                    "severity": downgraded[severity],
-                    "status": "Partially addressed"
-                })
-    # Sort by severity
-    order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
-    findings.sort(key=lambda x: order[x["severity"]])
+def get_findings():
+    downgrade = {"critical": "high", "high": "medium", "medium": "low", "low": "low"}
+    sev_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+    findings  = []
+    for domain, dd in DOMAINS.items():
+        resp = st.session_state.responses.get(domain, {})
+        for i, (q, sev) in enumerate(dd["questions"]):
+            r = resp.get(f"{domain}_{i}", "Not applicable")
+            if r == "No — not addressed":
+                findings.append({"domain": domain, "q": q, "sev": sev, "status": "Gap — not addressed"})
+            elif r == "Partially — in progress":
+                findings.append({"domain": domain, "q": q, "sev": downgrade[sev], "status": "Partially addressed"})
+    findings.sort(key=lambda x: sev_order[x["sev"]])
     return findings
 
-
-def generate_recommendations(findings: list) -> list:
-    recs = []
-    seen_domains = set()
-    for f in findings:
-        if f["severity"] in ("critical", "high") and f["domain"] not in seen_domains:
-            seen_domains.add(f["domain"])
-            domain_data = DOMAINS[f["domain"]]
-            if f["domain"] == "Transparency & Explainability":
-                recs.append("Develop and publish a model card documenting system capabilities, limitations, training data sources, and performance benchmarks. This is a baseline expectation under the EU AI Act and NIST AI RMF.")
-            elif f["domain"] == "Fairness & Non-Discrimination":
-                recs.append("Commission a formal bias audit across protected demographic characteristics before or immediately after deployment. Establish a fairness metric (e.g. equalized odds, demographic parity) and set a threshold for acceptable disparity.")
-            elif f["domain"] == "Accountability & Oversight":
-                recs.append("Assign a named AI system owner accountable for outcomes and implement human-in-the-loop review for high-stakes decisions. Establish an incident response playbook specific to AI-related harms.")
-            elif f["domain"] == "Security & Robustness":
-                recs.append("Conduct adversarial testing and red-teaming before deployment. Implement production monitoring for model drift and anomalous outputs, with alerting thresholds defined by the system owner.")
-            elif f["domain"] == "Privacy & Data Governance":
-                recs.append("Conduct a Privacy Impact Assessment (PIA) and map all personal data flows through the system. Ensure data subject notification obligations are met and a deletion mechanism is in place.")
-    # Add general recs
-    if len(findings) > 10:
-        recs.append("Given the volume of open findings, consider pausing deployment or limiting scope until critical and high severity gaps are resolved. A phased rollout with staged governance reviews is recommended.")
-    if any(f["severity"] == "critical" for f in findings):
-        recs.append("Critical findings must be resolved before the system is considered fit for deployment in high-risk contexts. Escalate to senior leadership and consider engaging an external AI governance advisor.")
-    return recs
-
-
-def build_radar_chart(domain_scores: dict) -> go.Figure:
-    categories = list(domain_scores.keys())
-    # Shorten labels for radar
-    short_labels = [d.split("&")[0].strip() for d in categories]
-    values = [domain_scores[d] for d in categories]
-    values_closed = values + [values[0]]
-    short_labels_closed = short_labels + [short_labels[0]]
-
-    fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(
-        r=values_closed,
-        theta=short_labels_closed,
-        fill='toself',
-        fillcolor='rgba(17,17,17,0.08)',
-        line=dict(color='#111', width=2),
-        name='Score'
+def radar_chart(d_sc):
+    cats   = list(d_sc.keys())
+    labels = [d.split("&")[0].strip() for d in cats]
+    vals   = [d_sc[d] for d in cats]
+    fig = go.Figure(go.Scatterpolar(
+        r=vals + [vals[0]], theta=labels + [labels[0]],
+        fill='toself', fillcolor='rgba(90,127,168,0.12)',
+        line=dict(color='#5a9fd4', width=2),
     ))
     fig.update_layout(
         polar=dict(
-            bgcolor='rgba(247,245,240,0)',
-            radialaxis=dict(
-                visible=True, range=[0, 100],
-                tickfont=dict(size=9, family='DM Mono', color='#aaa'),
-                gridcolor='#e8e4dc',
-                linecolor='#e8e4dc'
-            ),
+            bgcolor='rgba(0,0,0,0)',
+            radialaxis=dict(visible=True, range=[0,100],
+                tickfont=dict(size=9, family='DM Mono', color='rgba(232,228,220,0.3)'),
+                gridcolor='rgba(255,255,255,0.06)', linecolor='rgba(255,255,255,0.06)'),
             angularaxis=dict(
-                tickfont=dict(size=10, family='Libre Franklin', color='#444'),
-                gridcolor='#e8e4dc',
-                linecolor='#e8e4dc'
-            )
+                tickfont=dict(size=10, family='Libre Franklin', color='rgba(232,228,220,0.6)'),
+                gridcolor='rgba(255,255,255,0.06)', linecolor='rgba(255,255,255,0.06)')
         ),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        showlegend=False,
-        margin=dict(l=40, r=40, t=40, b=40),
-        height=340
+        paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+        showlegend=False, margin=dict(l=40,r=40,t=40,b=40), height=320
     )
     return fig
 
-
-def build_bar_chart(domain_scores: dict) -> go.Figure:
-    domains = list(domain_scores.keys())
-    short = [d.split("&")[0].strip() for d in domains]
-    scores = [domain_scores[d] for d in domains]
-    colors = [score_to_rating(s)[2] for s in scores]
-
+def bar_chart(d_sc):
+    cats   = list(d_sc.keys())
+    labels = [d.split("&")[0].strip() for d in cats]
+    vals   = [d_sc[d] for d in cats]
+    colors = [rating(v)[1] for v in vals]
     fig = go.Figure(go.Bar(
-        x=short, y=scores,
-        marker_color=colors,
-        marker_line_width=0,
-        text=[f"{s:.0f}" for s in scores],
-        textposition='outside',
-        textfont=dict(family='DM Mono', size=11, color='#444')
+        x=labels, y=vals, marker_color=colors, marker_line_width=0,
+        text=[f"{v:.0f}" for v in vals], textposition='outside',
+        textfont=dict(family='DM Mono', size=11, color='rgba(232,228,220,0.5)')
     ))
     fig.update_layout(
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        yaxis=dict(range=[0, 115], showgrid=True, gridcolor='#e8e4dc',
-                   tickfont=dict(family='DM Mono', size=9, color='#aaa'),
-                   title='Score (0–100)'),
-        xaxis=dict(tickfont=dict(family='Libre Franklin', size=10, color='#444')),
-        margin=dict(l=10, r=10, t=20, b=10),
-        height=300,
-        showlegend=False
+        paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+        yaxis=dict(range=[0,118], showgrid=True, gridcolor='rgba(255,255,255,0.05)',
+                   tickfont=dict(family='DM Mono', size=9, color='rgba(232,228,220,0.3)')),
+        xaxis=dict(tickfont=dict(family='Libre Franklin', size=10, color='rgba(232,228,220,0.55)')),
+        margin=dict(l=10,r=10,t=24,b=10), height=280, showlegend=False
     )
     return fig
 
-
-def generate_report_text(system_name, use_case, sector, overall_score, rating,
-                         domain_scores, findings, recommendations, assessor) -> str:
-    date = datetime.today().strftime("%B %d, %Y")
-    lines = []
-    lines.append("=" * 70)
-    lines.append("AI GOVERNANCE AUDIT REPORT")
-    lines.append("=" * 70)
-    lines.append(f"System Name   : {system_name}")
-    lines.append(f"Use Case      : {use_case}")
-    lines.append(f"Sector        : {sector}")
-    lines.append(f"Assessed by   : {assessor}")
-    lines.append(f"Date          : {date}")
-    lines.append(f"Framework     : EU AI Act · NIST AI RMF · ISO 42001")
-    lines.append("")
-    lines.append("-" * 70)
-    lines.append("OVERALL SCORE")
-    lines.append("-" * 70)
-    lines.append(f"  {overall_score:.1f} / 100   —   {rating}")
-    lines.append("")
-    lines.append("-" * 70)
-    lines.append("DOMAIN SCORES")
-    lines.append("-" * 70)
-    for domain, score in domain_scores.items():
-        r, _, _ = score_to_rating(score)
-        lines.append(f"  {domain:<38} {score:>5.1f}   {r}")
-    lines.append("")
-    lines.append("-" * 70)
-    lines.append(f"FINDINGS  ({len(findings)} total)")
-    lines.append("-" * 70)
-    for i, f in enumerate(findings, 1):
-        lines.append(f"  [{f['severity'].upper()}] {f['domain']}")
-        lines.append(f"  {i}. {f['question']}")
-        lines.append(f"     Status: {f['status']}")
-        lines.append("")
-    lines.append("-" * 70)
-    lines.append("RECOMMENDATIONS")
-    lines.append("-" * 70)
-    for i, r in enumerate(recommendations, 1):
-        lines.append(f"  {i}. {r}")
-        lines.append("")
-    lines.append("=" * 70)
-    lines.append("END OF REPORT")
-    lines.append("=" * 70)
+def generate_report():
+    sc  = overall_score()
+    rat = rating(sc)[0]
+    fnd = get_findings()
+    d_sc = {d: domain_score(d) for d in DOMAINS}
+    meta = st.session_state.meta
+    lines = [
+        "="*68, "AI GOVERNANCE AUDIT REPORT", "="*68,
+        f"System        : {meta.get('system','—')}",
+        f"Use Case      : {meta.get('usecase','—')}",
+        f"Sector        : {meta.get('sector','—')}",
+        f"Deployment    : {meta.get('stage','—')}",
+        f"Assessed by   : {meta.get('assessor','—')}",
+        f"Date          : {datetime.today().strftime('%B %d, %Y')}",
+        f"Framework     : EU AI Act · NIST AI RMF 1.0 · ISO 42001 · OSFI E-23",
+        "", "-"*68, "OVERALL SCORE", "-"*68,
+        f"  {sc:.1f} / 100   —   {rat}", "",
+        "-"*68, "DOMAIN SCORES", "-"*68,
+    ]
+    for d, s in d_sc.items():
+        lines.append(f"  {d:<40} {s:>5.1f}   {rating(s)[0]}")
+    lines += ["", "-"*68, f"FINDINGS  ({len(fnd)} total)", "-"*68]
+    for i, f in enumerate(fnd, 1):
+        lines += [f"  [{f['sev'].upper()}] {f['domain']}",
+                  f"  {i}. {f['q']}", f"     Status: {f['status']}", ""]
+    lines += ["-"*68, "END OF REPORT", "="*68]
     return "\n".join(lines)
 
 
 # ============================================================
-# SIDEBAR — System Information
+# SIDEBAR
 # ============================================================
 with st.sidebar:
-    st.markdown('<p class="section-label">System Under Review</p>', unsafe_allow_html=True)
-
-    system_name = st.text_input("AI System Name", placeholder="e.g. LoanDecisionAI v2.1")
-    use_case = st.text_input("Use Case", placeholder="e.g. Credit scoring for retail lending")
-    sector = st.selectbox("Sector", [
-        "Financial Services", "Healthcare", "Public Sector / Government",
-        "Human Resources", "Education", "Legal", "Retail / E-Commerce",
-        "Insurance", "Other"
-    ])
-    deployment_stage = st.selectbox("Deployment Stage", [
-        "Pre-deployment (design/testing)",
-        "Pilot / limited rollout",
-        "Full production",
-        "Under review / suspended"
-    ])
-    assessor = st.text_input("Assessor Name", placeholder="e.g. Khushi Rana")
+    st.markdown('<span class="slabel">System Under Review</span>', unsafe_allow_html=True)
+    st.session_state.meta["system"]   = st.text_input("AI System Name", value=st.session_state.meta.get("system",""), placeholder="e.g. LoanDecisionAI v2.1")
+    st.session_state.meta["usecase"]  = st.text_input("Use Case", value=st.session_state.meta.get("usecase",""), placeholder="e.g. Credit scoring")
+    st.session_state.meta["sector"]   = st.selectbox("Sector", ["Financial Services","Healthcare","Public Sector","HR","Education","Legal","Retail","Insurance","Other"])
+    st.session_state.meta["stage"]    = st.selectbox("Deployment Stage", ["Pre-deployment","Pilot / limited rollout","Full production","Under review / suspended"])
+    st.session_state.meta["assessor"] = st.text_input("Assessor", value=st.session_state.meta.get("assessor",""), placeholder="Your name")
 
     st.markdown("---")
-    st.markdown('<p class="section-label">About This Framework</p>', unsafe_allow_html=True)
+    st.markdown('<span class="slabel">Framework Alignment</span>', unsafe_allow_html=True)
+    st.markdown('<span class="fw-tag">EU AI Act</span><span class="fw-tag">NIST AI RMF</span><span class="fw-tag">ISO 42001</span><span class="fw-tag">OSFI E-23</span><span class="fw-tag">OECD 2025</span>', unsafe_allow_html=True)
+
+    st.markdown("---")
+    cur = st.session_state.step
+    pct = int((cur / (len(STEPS) - 1)) * 100) if len(STEPS) > 1 else 0
+    st.markdown(f'<span class="slabel">Progress — {pct}%</span>', unsafe_allow_html=True)
+    st.markdown(f'<div class="progress-bar-outer"><div class="progress-bar-inner" style="width:{pct}%;"></div></div>', unsafe_allow_html=True)
+    for i, s in enumerate(STEPS):
+        c = "#5a9fd4" if i == cur else ("#2ecc71" if i < cur else "rgba(232,228,220,0.2)")
+        prefix = "▶ " if i == cur else ("✓ " if i < cur else "○ ")
+        st.markdown(f'<p style="font-family:\'DM Mono\',monospace;font-size:0.65rem;color:{c};letter-spacing:1px;margin:3px 0;">{prefix}{s}</p>', unsafe_allow_html=True)
+
+
+# ============================================================
+# STEP 0 — WELCOME
+# ============================================================
+step = st.session_state.step
+
+if step == 0:
     st.markdown("""
-    <p style="font-size:0.78rem;color:#888;line-height:1.6;">
-    Draws from:<br>
-    · <b>EU AI Act</b> (2024)<br>
-    · <b>NIST AI RMF 1.0</b><br>
-    · <b>ISO/IEC 42001</b><br>
-    · <b>OECD AI Principles</b>
-    </p>
-    """, unsafe_allow_html=True)
-
-
-# ============================================================
-# HEADER
-# ============================================================
-st.markdown(f"""
-<div class="audit-header">
-    <div class="audit-tag">⚖ AI Governance · Risk Assessment Tool</div>
-    <h1>AI Governance Audit Framework</h1>
-    <p>Evaluate an AI system against structured governance criteria drawn from the EU AI Act, NIST AI Risk Management Framework, and ISO 42001. Identify gaps, assess risk exposure, and generate a findings report.</p>
-</div>
-""", unsafe_allow_html=True)
-
-
-# ============================================================
-# INSTRUCTIONS
-# ============================================================
-with st.expander("How to use this tool", expanded=False):
-    st.markdown("""
-    **This tool walks through five governance domains.** For each question, select the response that most accurately reflects the current state of the AI system under review.
-
-    - **Yes — fully in place**: A formal process, document, or control exists and is operational
-    - **Partially — in progress**: Work has begun but is incomplete or inconsistently applied
-    - **No — not addressed**: No action has been taken on this item
-    - **Not applicable**: This criterion is genuinely irrelevant to this system (use sparingly)
-
-    After completing all five domains, scroll to the **Results** section for scores, findings, and recommendations. You can download a full audit report as a text file.
-
-    *Intended for educational and portfolio purposes. Not a substitute for a formal regulatory compliance review.*
-    """)
-
-st.markdown("---")
-
-
-# ============================================================
-# ASSESSMENT FORM — Five Domains
-# ============================================================
-all_responses = {}
-domain_scores = {}
-
-for domain, domain_data in DOMAINS.items():
-    st.markdown(f'<p class="section-label">Domain</p>', unsafe_allow_html=True)
-
-    severity_counts = {"critical": 0, "high": 0}
-    for _, sev in domain_data["questions"]:
-        if sev in severity_counts:
-            severity_counts[sev] += 1
-
-    pills = ""
-    if severity_counts["critical"]:
-        pills += f'<span class="pill pill-critical">{severity_counts["critical"]} critical</span>'
-    if severity_counts["high"]:
-        pills += f'<span class="pill pill-high">{severity_counts["high"]} high</span>'
-
-    st.markdown(f"""
-    <div class="domain-card">
-        <div class="domain-title">{domain_data['icon']} &nbsp; {domain} {pills}</div>
-        <div class="domain-desc">{domain_data['description']}</div>
+    <div class="hero">
+        <div class="hero-tag">⚖ AI Governance · Risk Assessment</div>
+        <h1>AI Governance<br>Audit Framework</h1>
+        <p>Evaluate an AI system against structured governance criteria drawn from the EU AI Act, NIST AI Risk Management Framework, ISO 42001, and OSFI E-23. Identify gaps, assess risk exposure, and generate a findings report.</p>
     </div>
     """, unsafe_allow_html=True)
 
-    responses = {}
-    for i, (question, severity) in enumerate(domain_data["questions"]):
-        key = f"{domain}_{i}"
-        label = f"[{severity.upper()}] {question}"
-        response = st.radio(
-            label,
-            options=list(RISK_LEVELS.keys()),
-            horizontal=True,
-            key=key,
-            index=3  # Default: Not applicable
-        )
-        responses[key] = response
+    c1, c2, c3 = st.columns(3)
+    for col, icon, title, desc in [
+        (c1, "◎", "5 Governance Domains", "Transparency, Fairness, Accountability, Security, Privacy"),
+        (c2, "◈", "25 Structured Questions", "Severity-tagged, drawn from real regulatory frameworks"),
+        (c3, "◻", "Scored Risk Report", "Weighted score, radar chart, findings, and downloadable report"),
+    ]:
+        col.markdown(f"""
+        <div style="background:#111828;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:22px 20px;">
+            <div style="font-size:1.3rem;color:#5a7fa8;margin-bottom:10px;">{icon}</div>
+            <div style="font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;color:#f0ece4;margin-bottom:6px;">{title}</div>
+            <div style="font-size:0.78rem;color:rgba(232,228,220,0.4);line-height:1.6;">{desc}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    all_responses[domain] = responses
-    domain_scores[domain] = compute_domain_score(responses, domain_data["questions"])
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown('<span class="slabel">How to Use</span>', unsafe_allow_html=True)
+    st.markdown("""
+    <div style="background:#111828;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:22px 24px;font-size:0.87rem;color:rgba(232,228,220,0.6);line-height:1.9;">
+    Fill in the system details in the left sidebar, then work through 5 governance domains one at a time.<br><br>
+    For each question select the response that best reflects the <i>current state</i> of the system:<br>
+    &nbsp;&nbsp;<b style="color:#2ecc71;">Yes — fully in place</b> &nbsp;· A formal process or control exists and is operational<br>
+    &nbsp;&nbsp;<b style="color:#f1c40f;">Partially — in progress</b> &nbsp;· Work has begun but is incomplete or inconsistent<br>
+    &nbsp;&nbsp;<b style="color:#e74c3c;">No — not addressed</b> &nbsp;· No action has been taken<br>
+    &nbsp;&nbsp;<b style="color:rgba(232,228,220,0.35);">Not applicable</b> &nbsp;· Genuinely irrelevant to this system (use sparingly)
+    </div>
+    """, unsafe_allow_html=True)
 
-st.markdown("---")
+    st.markdown("<br>", unsafe_allow_html=True)
+    _, cb, _ = st.columns([2, 1, 2])
+    with cb:
+        if st.button("Begin Assessment →", use_container_width=True):
+            st.session_state.step = 1
+            st.rerun()
 
 
 # ============================================================
-# RESULTS
+# STEPS 1–5 — DOMAIN QUESTIONS
 # ============================================================
-overall_score = compute_overall_score(domain_scores)
-rating, risk_level, rating_color = score_to_rating(overall_score)
-findings = generate_findings(all_responses, system_name or "Unnamed System")
-recommendations = generate_recommendations(findings)
-
-st.markdown('<p class="section-label">Results</p>', unsafe_allow_html=True)
-st.markdown("## Assessment Results")
-
-# Score + radar side by side
-col_score, col_radar, col_bar = st.columns([1, 1.4, 1.4])
-
-with col_score:
-    critical_count = sum(1 for f in findings if f["severity"] == "critical")
-    high_count     = sum(1 for f in findings if f["severity"] == "high")
-    medium_count   = sum(1 for f in findings if f["severity"] == "medium")
+elif 1 <= step <= 5:
+    domain_list = list(DOMAINS.keys())
+    domain      = domain_list[step - 1]
+    dd          = DOMAINS[domain]
+    pct         = int((step / (len(STEPS) - 1)) * 100)
 
     st.markdown(f"""
-    <div class="score-card">
-        <div class="score-label">Overall Score</div>
-        <div class="score-number" style="color:{rating_color};">{overall_score:.0f}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:1px;
-                    color:{rating_color};margin-bottom:18px;">{rating.upper()}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:0.68rem;color:rgba(247,245,240,0.4);
-                    letter-spacing:1px;margin-bottom:10px;">FINDINGS BREAKDOWN</div>
-        <div style="font-size:0.85rem;line-height:2;">
-            <span style="color:#e74c3c;">■</span>
-            <span style="font-family:'DM Mono',monospace;font-size:0.75rem;color:rgba(247,245,240,0.7);">
-                &nbsp;{critical_count} Critical</span><br>
-            <span style="color:#e67e22;">■</span>
-            <span style="font-family:'DM Mono',monospace;font-size:0.75rem;color:rgba(247,245,240,0.7);">
-                &nbsp;{high_count} High</span><br>
-            <span style="color:#f1c40f;">■</span>
-            <span style="font-family:'DM Mono',monospace;font-size:0.75rem;color:rgba(247,245,240,0.7);">
-                &nbsp;{medium_count} Medium</span>
+    <div class="progress-bar-outer"><div class="progress-bar-inner" style="width:{pct}%;"></div></div>
+    <div class="step-counter">Domain {step} of 5 &nbsp;·&nbsp; {domain}</div>
+    """, unsafe_allow_html=True)
+
+    fw_tags = "".join(f'<span class="fw-tag">{f}</span>' for f in dd["frameworks"])
+    st.markdown(f"""
+    <div class="step-card">
+        <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#5a7fa8;margin-bottom:8px;">{dd['icon']} &nbsp; Domain {step} of 5</div>
+        <div class="step-card-title">{domain}</div>
+        <div class="step-card-desc">{dd['description']}</div>
+        <div>{fw_tags}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if domain not in st.session_state.responses:
+        st.session_state.responses[domain] = {}
+
+    for i, (q, sev) in enumerate(dd["questions"]):
+        key     = f"{domain}_{i}"
+        cur_val = st.session_state.responses[domain].get(key, "Not applicable")
+        idx     = RESPONSE_OPTS.index(cur_val) if cur_val in RESPONSE_OPTS else 3
+
+        st.markdown(f"""
+        <div class="q-item">
+            <div class="q-severity sev-{sev}">{sev}</div>
+            <div class="q-text">{q}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        resp = st.radio("", RESPONSE_OPTS, index=idx, horizontal=True,
+                        key=f"radio_{key}", label_visibility="collapsed")
+        st.session_state.responses[domain][key] = resp
+        st.markdown("<div style='margin-bottom:6px;'></div>", unsafe_allow_html=True)
+
+    sc  = domain_score(domain)
+    rat, col = rating(sc)
+    st.markdown(f"""
+    <div style="background:#111828;border:1px solid rgba(255,255,255,0.06);border-radius:10px;
+                padding:14px 20px;margin-top:16px;display:flex;align-items:center;gap:16px;">
+        <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:{col};">{sc:.0f}</div>
+        <div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;color:rgba(232,228,220,0.3);">Domain Score</div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:{col};">{rat}</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-with col_radar:
-    st.markdown('<p style="font-family:\'DM Mono\',monospace;font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:0;">Coverage Radar</p>', unsafe_allow_html=True)
-    st.plotly_chart(build_radar_chart(domain_scores), use_container_width=True)
-
-with col_bar:
-    st.markdown('<p style="font-family:\'DM Mono\',monospace;font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:0;">Domain Scores</p>', unsafe_allow_html=True)
-    st.plotly_chart(build_bar_chart(domain_scores), use_container_width=True)
-
-st.markdown("---")
+    st.markdown("<br>", unsafe_allow_html=True)
+    nl, _, nr = st.columns([1, 2, 1])
+    with nl:
+        if st.button("← Back", use_container_width=True):
+            st.session_state.step -= 1
+            st.rerun()
+    with nr:
+        label = "View Results →" if step == 5 else "Next Domain →"
+        if st.button(label, use_container_width=True):
+            st.session_state.step += 1
+            st.rerun()
 
 
 # ============================================================
-# FINDINGS
+# STEP 6 — RESULTS
 # ============================================================
-st.markdown('<p class="section-label">Findings</p>', unsafe_allow_html=True)
-st.markdown(f"### {len(findings)} Finding{'s' if len(findings) != 1 else ''} Identified")
+elif step == 6:
+    sc       = overall_score()
+    rat, col = rating(sc)
+    d_scores = {d: domain_score(d) for d in DOMAINS}
+    findings = get_findings()
+    crit     = sum(1 for f in findings if f["sev"] == "critical")
+    high     = sum(1 for f in findings if f["sev"] == "high")
+    med      = sum(1 for f in findings if f["sev"] == "medium")
 
-if not findings:
-    st.success("No gaps identified. All assessed criteria are fully in place.")
-else:
+    st.markdown('<span class="slabel">Results</span>', unsafe_allow_html=True)
+    st.markdown("## Assessment Results")
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    cs, cr, cb2 = st.columns([1, 1.3, 1.3])
+
+    with cs:
+        st.markdown(f"""
+        <div class="score-hero">
+            <div class="score-lbl">Overall Score</div>
+            <div class="score-num" style="color:{col};">{sc:.0f}</div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:1.5px;text-transform:uppercase;color:{col};margin-bottom:24px;">{rat}</div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:2px;color:rgba(232,228,220,0.3);text-transform:uppercase;margin-bottom:12px;">Findings</div>
+            <div style="font-size:0.85rem;line-height:2.2;text-align:left;padding-left:12px;">
+                <span style="color:#e74c3c;">■</span> <span style="font-family:'DM Mono',monospace;font-size:0.75rem;color:rgba(232,228,220,0.6);">{crit} Critical</span><br>
+                <span style="color:#e67e22;">■</span> <span style="font-family:'DM Mono',monospace;font-size:0.75rem;color:rgba(232,228,220,0.6);">{high} High</span><br>
+                <span style="color:#f1c40f;">■</span> <span style="font-family:'DM Mono',monospace;font-size:0.75rem;color:rgba(232,228,220,0.6);">{med} Medium</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with cr:
+        st.markdown('<span class="slabel">Coverage Radar</span>', unsafe_allow_html=True)
+        st.plotly_chart(radar_chart(d_scores), use_container_width=True)
+
+    with cb2:
+        st.markdown('<span class="slabel">Domain Scores</span>', unsafe_allow_html=True)
+        st.plotly_chart(bar_chart(d_scores), use_container_width=True)
+
+    st.markdown("---")
+    st.markdown('<span class="slabel">Findings</span>', unsafe_allow_html=True)
+    st.markdown(f"### {len(findings)} Finding{'s' if len(findings)!=1 else ''} Identified")
+
+    if not findings:
+        st.success("No gaps identified — all assessed criteria are fully in place.")
+    else:
+        for f in findings:
+            c = sev_color(f["sev"])
+            st.markdown(f"""
+            <div class="finding" style="border-left-color:{c};">
+                <div class="finding-lbl" style="color:{c};">{f['sev'].upper()} · {f['domain']} · {f['status']}</div>
+                {f['q']}
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown('<span class="slabel">Recommendations</span>', unsafe_allow_html=True)
+    st.markdown("### Recommended Actions")
+
+    rec_map = {
+        "Transparency & Explainability": "Develop and publish a model card documenting capabilities, limitations, training data sources, and performance benchmarks. This is a baseline expectation under EU AI Act Art. 13 and NIST AI RMF.",
+        "Fairness & Non-Discrimination": "Commission a formal bias audit across protected demographic characteristics. Establish a fairness metric (e.g. equalized odds, demographic parity) and define an acceptable disparity threshold before deployment.",
+        "Accountability & Oversight": "Assign a named AI system owner accountable for outcomes. Implement human-in-the-loop review for high-stakes decisions and establish an incident response playbook for AI-related harms (OSFI E-23 §4).",
+        "Security & Robustness": "Conduct adversarial testing and red-teaming before deployment. Implement production monitoring for model drift with alerting thresholds defined by the system owner (ISO 42001 §8.5).",
+        "Privacy & Data Governance": "Conduct a Privacy Impact Assessment and map all personal data flows. Ensure data subject notification obligations are met and a deletion mechanism exists (GDPR Art. 17 / PIPEDA).",
+    }
+
+    shown = set()
+    recs  = []
     for f in findings:
-        sev = f["severity"]
+        if f["sev"] in ("critical","high") and f["domain"] not in shown:
+            shown.add(f["domain"])
+            recs.append(rec_map[f["domain"]])
+    if len(findings) > 8:
+        recs.append("Given the volume of open findings, consider a phased rollout with staged governance reviews. Pausing deployment in high-risk contexts until critical gaps are resolved is recommended.")
+    if crit > 0:
+        recs.append("Critical findings must be resolved before the system is considered fit for deployment. Escalate to senior leadership and consider engaging an external AI governance advisor.")
+
+    if not recs:
+        st.success("No priority recommendations. Schedule a re-assessment in 6 months.")
+    else:
+        for i, r in enumerate(recs, 1):
+            st.markdown(f'<div class="rec"><span class="rec-n">{i:02d}</span>{r}<div style="clear:both;"></div></div>', unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown('<span class="slabel">Export</span>', unsafe_allow_html=True)
+    st.markdown("### Download Audit Report")
+
+    meta  = st.session_state.meta
+    fname = f"ai_audit_{(meta.get('system') or 'system').lower().replace(' ','_')}_{datetime.today().strftime('%Y%m%d')}.txt"
+
+    cd, ci, cr2 = st.columns([1, 2, 1])
+    with cd:
+        st.download_button("⬇  Download Report (.txt)", data=generate_report().encode("utf-8"),
+                           file_name=fname, mime="text/plain", use_container_width=True)
+    with ci:
         st.markdown(f"""
-        <div class="finding {sev}">
-            <div class="finding-label {sev}">{sev.upper()} · {f['domain']} · {f['status']}</div>
-            {f['question']}
-        </div>
+        <p style="font-size:0.77rem;color:rgba(232,228,220,0.35);line-height:1.9;margin-top:6px;">
+        System: <b style="color:rgba(232,228,220,0.6);">{meta.get('system','—')}</b><br>
+        Date: <b style="color:rgba(232,228,220,0.6);">{datetime.today().strftime('%B %d, %Y')}</b><br>
+        Framework: EU AI Act · NIST AI RMF · ISO 42001 · OSFI E-23
+        </p>
         """, unsafe_allow_html=True)
+    with cr2:
+        if st.button("↺  Start Over", use_container_width=True):
+            st.session_state.step = 0
+            st.session_state.responses = {}
+            st.rerun()
 
-st.markdown("---")
-
-
-# ============================================================
-# RECOMMENDATIONS
-# ============================================================
-st.markdown('<p class="section-label">Recommendations</p>', unsafe_allow_html=True)
-st.markdown("### Recommended Actions")
-
-if not recommendations:
-    st.success("No priority recommendations at this time. Continue monitoring and schedule a re-assessment in 6 months.")
-else:
-    for i, rec in enumerate(recommendations, 1):
-        st.markdown(f"""
-        <div class="rec-card">
-            <span class="rec-number">{i:02d}</span>
-            {rec}
-            <div style="clear:both;"></div>
-        </div>
-        """, unsafe_allow_html=True)
-
-st.markdown("---")
-
-
-# ============================================================
-# DOWNLOAD REPORT
-# ============================================================
-st.markdown('<p class="section-label">Export</p>', unsafe_allow_html=True)
-st.markdown("### Download Audit Report")
-
-report_text = generate_report_text(
-    system_name or "Unnamed System",
-    use_case or "Not specified",
-    sector,
-    overall_score,
-    rating,
-    domain_scores,
-    findings,
-    recommendations,
-    assessor or "Not specified"
-)
-
-col_dl, col_meta, _ = st.columns([1, 2, 1])
-with col_dl:
-    filename = f"ai_audit_{(system_name or 'system').lower().replace(' ', '_')}_{datetime.today().strftime('%Y%m%d')}.txt"
-    st.download_button(
-        label="⬇  Download Full Report (.txt)",
-        data=report_text.encode("utf-8"),
-        file_name=filename,
-        mime="text/plain",
-        use_container_width=True
-    )
-with col_meta:
-    st.markdown(f"""
-    <p style="font-size:0.78rem;color:#888;line-height:1.8;margin-top:8px;">
-    System: <b>{system_name or '—'}</b><br>
-    Assessed: <b>{datetime.today().strftime('%B %d, %Y')}</b><br>
-    Framework: EU AI Act · NIST AI RMF · ISO 42001
+    st.markdown("""
+    <p style="font-size:0.72rem;color:rgba(232,228,220,0.2);text-align:center;font-family:'DM Mono',monospace;letter-spacing:0.5px;padding:20px 0 8px;">
+    Built by Khushi Rana &nbsp;·&nbsp; AI Governance Audit Framework &nbsp;·&nbsp; For educational and portfolio purposes
     </p>
     """, unsafe_allow_html=True)
-
-st.markdown("---")
-
-# Footer
-st.markdown("""
-<p style="font-size:0.75rem;color:#bbb;text-align:center;font-family:'DM Mono',monospace;
-          letter-spacing:0.5px;padding:16px 0;">
-Built by Khushi Rana &nbsp;·&nbsp; AI Governance Audit Framework &nbsp;·&nbsp;
-For educational and portfolio purposes
-</p>
-""", unsafe_allow_html=True)
