@@ -2,7 +2,7 @@
 
 An interactive tool for evaluating AI systems against structured governance criteria — covering transparency, fairness, accountability, security, and privacy. Generates a scored risk assessment and downloadable audit report.
 
-**[→ View Live Tool](#)** <!-- replace with your Streamlit URL -->
+**[→ View Live Tool](https://ai-governance-audit-9abmdtb9a4zsyrffdqzkbc.streamlit.app/)** <!-- replace with your Streamlit URL -->
 
 ---
 
