@@ -874,7 +874,7 @@ elif 1 <= step <= 5:
         </div>
         """, unsafe_allow_html=True)
 
-        resp = st.radio("", RESPONSE_OPTS, index=idx, horizontal=True,
+        resp = st.radio("Response", RESPONSE_OPTS, index=idx, horizontal=True,
                         key=f"radio_{key}", label_visibility="collapsed")
         st.session_state.responses[domain][key] = resp
         st.markdown("<div style='margin-bottom:10px;'></div>", unsafe_allow_html=True)
